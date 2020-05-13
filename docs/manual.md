@@ -3,11 +3,17 @@
 ## Table of contents
 
 1. [Presentation](#presentation)
+
 2. [Screen description](#screen-description)
+
 3. [Menus](#menus)
+
 4. [Toolbar](#toolbar)
+
 5. [Other functions](#other-functions)
+
    a. [Attributes of bookmarks](#attributes-of-bookmarks)
+   
    b. [Search syntax](#search-syntax)
 
 
