@@ -8,6 +8,10 @@ The reason why I started this project is to practice with python and tkinter, ma
 
 So the idea is to use this program to download your bookmarks from pinboard, manage and edit them locally more easily, and then synchronize these changes with [pinboard][pinboard_lnk]. A copy of the bookmarks is kept locally, so you only synchronize the changes since the last connection.
 
+## Usage
+
+For the moment the program is not working yet, still being built. But note that you will need to have a pinboard account and an API Token in order to test functionality with pinboard. Put your API token in a text file in the same folder as the main program.
+
 
 ## Contribution
 
