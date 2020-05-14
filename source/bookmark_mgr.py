@@ -9,9 +9,11 @@ Created on Tue Nov  5 14:14:11 2019
 import datetime
 import json
 import logging
+import os
 import re
 import tkinter as tk
 from tkinter import ttk, filedialog
+import webbrowser
 
 # 3rd party impports
 import requests
@@ -30,8 +32,10 @@ class MenuFile:
     def create_menu(self):
         self.menu = tk.Menu(self.master)
         self.master.add_cascade(menu=self.menu, label='File')
-        self.menu.add_command(label='New file', accelerator="Ctrl+N", command=self.menu_newfile)
-        self.menu.add_command(label='Open file', accelerator="Ctrl+O", command=self.menu_openfile)
+        self.menu.add_command(label='New file', accelerator="Ctrl+N", 
+                              command=self.menu_newfile)
+        self.menu.add_command(label='Open file', accelerator="Ctrl+O", 
+                              command=self.menu_openfile)
         self.menu.add_command(label='Save', command=self.menu_savefile)
         self.menu.add_command(label='Save as...', command=self.menu_savefileas)
         self.menu.add_separator()
@@ -42,29 +46,41 @@ class MenuFile:
         root.bind_all('<Control-o>', self.menu_openfile)
 
 
-    def menu_newfile(self, ev=None):
-        pass
+    def menu_newfile(self):
+        """create new database instance"""
+        global database
+        
+        database = BookmarkDatabase()
+        bookmark_list_window.rebuild_tree()
+        
 
 
-    def menu_openfile(self, ev=None):        
+    def menu_openfile(self):        
         filename = filedialog.askopenfilename()
 
         if len(filename) == 0:
-            return
+            return False
 
+        status_msg.set_status("Function not yet implemented.")
         # TODO read data from file
-
+        # with open('../assets/my_bookmarks/all.json') as f:
+        #     raw_list = f.read()
+        
+        # bookmarks = json.loads(raw_list)
+        
 
     def menu_savefile(self):
         filename = filedialog.asksaveasfilename()
 
         if len(filename) == 0:
             return
-
+        
+        status_msg.set_status("Function not yet implemented.")
         # TODO save data to file
 
 
     def menu_savefileas(self):
+        status_msg.set_status("Function not yet implemented.")
         pass
 
 
@@ -83,29 +99,51 @@ class MenuManage:
     def create_menu(self):
         self.menu = tk.Menu(self.master)
         self.master.add_cascade(menu=self.menu, label='Manage')
-        self.menu.add_command(label='Sync with Pinboard', command=self.menu_sync_pinboard)
-        self.menu.add_command(label='New bookmark', command=self.menu_ceate_new)
-        self.menu.add_command(label='Delete bookmark', command=self.menu_delete_bookmark)
+        self.menu.add_command(label='Get from Pinboard', 
+                              command=self.menu_get_pinboard)
+        self.menu.add_command(label='Update changes to Pinboard', 
+                              command=self.menu_update_pinboard)
+        self.menu.add_command(label='Add new bookmark', 
+                              command=self.menu_create_new)
+        self.menu.add_command(label='Delete bookmark', 
+                              command=self.menu_delete_bookmark)
         self.menu.add_separator()
         self.menu.add_command(label='Rename tag', command=self.menu_rename_tag)
         self.menu.add_command(label='Delete tag', command=self.menu_delete_tag)
+        
+        self.menu.add_separator()
+        self.menu.add_command(label='Save Pinboard API Token', 
+                              command=self.save_token)
+            
     
     
     def create_bindings(self):
         pass
     
     
-    def menu_sync_pinboard(self):
-        pass
+    def menu_get_pinboard(self):
+        status_msg.set_status("Getting bookmarks from Pinboard...")
+        if database.update_from_pinboard():
+            bookmark_list_window.rebuild_tree()
+            status_msg.set_status("Success, bookmarks loaded.")
+        else:
+            status_msg.set_status("Could not retrieve information from Pinboard.")
 
 
-    def menu_ceate_new(self):
+    def menu_update_pinboard(self):
+        status_msg.set_status("Uploading changes to Pinboard...")
+        if database.update_to_pinboard():
+            status_msg.set_status("Success, now the bookmarks are synced.")
+        else:
+            status_msg.set_status("Error, could not sync with Pinboard.")
+
+
+    def menu_create_new(self):
         pass
 
 
     def menu_delete_bookmark(self):
-        pass
-
+        details_window.del_button()
 
     def menu_rename_tag(self):
         pass
@@ -114,6 +152,9 @@ class MenuManage:
     def menu_delete_tag(self):
         pass
 
+
+    def save_token(self):
+        pass
 
 
 ###############################################################################
@@ -130,6 +171,9 @@ class MenuHelp:
         self.menu.add_command(label='Help', accelerator="F1", command=self.menu_manual)
         self.menu.add_separator()
         self.menu.add_command(label='About', command=self.menu_about)
+        self.menu.add_separator()
+        self.menu.add_command(label='Load local bookmarks', 
+                              command=self.menu_local)
             
     
     def create_bindings(self):
@@ -142,6 +186,27 @@ class MenuHelp:
 
     def menu_about(self):
         pass
+
+
+    def menu_local(self):
+        """internal function to avoid downloading from pinboard.
+        Takes bookmarks from local file previously saved.
+        Should be removed once the program is finished
+        """
+        with open('../assets/my_bookmarks/all.json') as f:
+            raw_list = f.read()
+        
+        bookmarks = json.loads(raw_list)
+        
+        # change formats, remove unneded fields, add fields required
+        count = 0
+        for b in bookmarks:
+            database.pin_session._format_from_pinboard(b)
+            count += 1
+            b['id'] = f'bk{count:05d}'        
+        
+        database.bookmarks = bookmarks
+        bookmark_list_window.rebuild_tree()
 
 
 
@@ -174,6 +239,13 @@ class Toolbar:
         self.icon_btn['save'].pack(side=tk.LEFT)
         self.icon_btn['save'].bind("<Enter>", lambda e: status_msg.set_status('Save current file'))
         self.icon_btn['save'].bind("<Leave>", lambda e: status_msg.clear_status())
+
+        self.icon_img['quit'] = tk.PhotoImage(file='icons/power.png')
+        self.icon_btn['quit'] = ttk.Button(self.master, image=self.icon_img['quit'],
+                     command=menu_file.menu_quit)
+        self.icon_btn['quit'].pack(side=tk.LEFT)
+        self.icon_btn['quit'].bind("<Enter>", lambda e: status_msg.set_status('Quit the application'))
+        self.icon_btn['quit'].bind("<Leave>", lambda e: status_msg.clear_status())
 
         self.icon_img['sep'] = tk.PhotoImage(file='icons/separator.png')
         self.icon_btn['sep'] = ttk.Label (self.master, image=self.icon_img['sep'])
@@ -217,13 +289,14 @@ class ListOfBookmarksPane:
                'title': {'header': 'Title', 'width': 300 },
                'url': {'header': 'Url', 'width': 300 },
                'tags': {'header': 'Tags', 'width': 150 },
-               'date': {'header': 'Created', 'width': 150 },
+               'date': {'header': 'Date', 'width': 150 },
                }
     
     def __init__(self, parent):
         self.master = parent
         self.create_tree_structure()
         self.current_index = None
+        self.order = 'id'
 
     def create_tree_structure(self):
         """Initialize the structure of the list, scrollbars and bindings"""
@@ -232,7 +305,8 @@ class ListOfBookmarksPane:
         self.tree["columns"] = tuple(self.columns.keys())[1:]
         for column in self.columns:
             self.tree.column(column, width=self.columns[column]['width'])
-            self.tree.heading(column, text=self.columns[column]['header'])
+            self.tree.heading(column, text=self.columns[column]['header'],
+                              command=lambda c=column: self._sort_by_column(c))
         
         s_vert_tree = ttk.Scrollbar(self.master, orient='vertical', 
                                     command=self.tree.yview)
@@ -244,7 +318,8 @@ class ListOfBookmarksPane:
         s_hor_tree.grid(column=0, row=1, sticky='ew')
         self.tree['xscrollcommand'] = s_hor_tree.set
 
-        self.tree.bind('<<TreeviewSelect>>', self.select_item)
+        self.tree.bind('<<TreeviewSelect>>', self._select_item)
+        self.tree.bind('<Double-1>', self._open_url)
 
 
     def rebuild_tree(self):
@@ -268,7 +343,7 @@ class ListOfBookmarksPane:
             self.tree.insert('', 'end', text=ident, values=values)
 
 
-    def select_item(self, *args):
+    def _select_item(self, *args):
         """based on the selected item, populate the detail pane"""
         self.current_id = self.tree.item(self.tree.focus(), "text")
         details_window.print_values(database.get_by_id(self.current_id))
@@ -276,7 +351,7 @@ class ListOfBookmarksPane:
     
     def _validate_filter(self, bookmark):
         """validate if bookmark is selected by filt. Return the result"""
-        filt_in, filt_out = filter_window.filter
+        filt_in, filt_out = filter_window.filter_
         for key, value in filt_in.items():
             if key == 'date':
                 if not (value['from'] < bookmark['date'] < value['to']):
@@ -300,7 +375,31 @@ class ListOfBookmarksPane:
         
         return True
         
-
+    
+    def _open_url(self, *args):
+        selected_id = self.tree.item(self.tree.focus(), "text")
+        book = database.get_by_id(selected_id)
+        webbrowser.open_new_tab(book['url'])
+    
+    
+    def _sort_by_column(self, column):
+        if column == '#0':
+            column = 'id'
+        
+        if self.order == column:
+            self.order = column + '_reversed'
+            rev = True
+        else:
+            self.order = column
+            rev = False
+        
+        if column == 'tags':
+            database.bookmarks.sort(key=lambda b=database.bookmarks: " ".join(
+                b[column]), reverse=rev)
+        else:
+            database.bookmarks.sort(key=lambda b=database.bookmarks: b[column],
+                                    reverse=rev)
+        self.rebuild_tree()
 
 
 ###############################################################################
@@ -347,7 +446,7 @@ class DetailsPane:
         apply_btn = ttk.Button(frame, text='Apply changes', padding=3,
                                 command=self._apply_button)       
         del_btn = ttk.Button(frame, text='Delete', padding=3,
-                                command=self._del_button)
+                                command=self.del_button)
         reset_btn.grid(column=0, row=i+1, padx=5, pady=20)
         apply_btn.grid(column=1, row=i+1, padx=5, pady=20)
         del_btn.grid(column=2, row=i+1, padx=5, pady=20)
@@ -403,11 +502,12 @@ class DetailsPane:
         self.print_values(b)
     
 
-    def _del_button(self):
+    def del_button(self):
         b = database.get_by_id(bookmark_list_window.current_id)
         b['status'] = 'delete'
         self.print_values(None)
         bookmark_list_window.rebuild_tree()
+        status_msg.set_status("Bookmark marked for deletion. It will be deleted at next synchronisation.")
 
     
 ###############################################################################
@@ -416,7 +516,7 @@ class FilterPane:
         self.master = parent
         self.regex = tk.BooleanVar(False)
         self.create_structure()
-        self.filter = [{}, {'status': ['delete']}]
+        self.filter_ = [{}, {'status': ['delete']}]
         
     
     def create_structure(self):
@@ -446,7 +546,7 @@ class FilterPane:
 
     def _clear_button(self):
         self.search_entry.delete('1.0', 'end')
-        self.filter = [{}, {'status': ['delete']}]
+        self.filter_ = [{}, {'status': ['delete']}]
         bookmark_list_window.rebuild_tree()
 
 
@@ -487,8 +587,8 @@ class FilterPane:
                 else:
                     filt_in['date']['from'] = datetime.datetime.fromisoformat(match[1])
         
-        self.filter = [filt_in, filt_out]
-        logging.debug(f"Search filter = {self.filter}")
+        self.filter_ = [filt_in, filt_out]
+        logging.debug(f"Search filter = {self.filter_}")
         bookmark_list_window.rebuild_tree()
         
     
@@ -527,9 +627,7 @@ class Pinboard:
         }
     
     def __init__(self, key_file):
-        self.base_url = 'https://api.pinboard.in/v1/'
-
-        with open(key_file) as f:
+        with open(os.path.join('data/',key_file)) as f:
             KEY=f.readline()[:-1]
         
         self.common_filters = {'format': 'json', 
@@ -541,17 +639,12 @@ class Pinboard:
         transforming to standard bookmark structure. Returns the bookmarks
         list if no error, False if any error.
         """
-        # req = requests.get(self.base_url+self.command['get'], 
-        #                     self.common_filters)
+        req = requests.get(self.base_url+self.command['get'], 
+                            self.common_filters)
         
-        # if req.status_code != 200:
-        #     return False
-        # bookmarks = json.loads(req.text)
-        
-        with open('../assets/my_bookmarks/all.json') as f:
-            raw_list = f.read()
-        
-        bookmarks = json.loads(raw_list)
+        if req.status_code != 200:
+            return False
+        bookmarks = json.loads(req.text)
         
         # change formats, remove unneded fields, add fields required
         count = 0
@@ -666,6 +759,7 @@ class BookmarkDatabase:
     def __init__(self):
         self.bookmarks = list()
         self.synced = False
+        self.pin_session = Pinboard('pinboard.key')
     
     def add_bookmark(self, url, title, description='', tags=set(), 
                      shared=False, toread=False):
@@ -711,37 +805,35 @@ class BookmarkDatabase:
         self.synced = False
         
     
-    def update_from_pinboard(self, pin:Pinboard):
+    def update_from_pinboard(self):
         """create new database from info in pinboard"""
-        self.bookmarks = pin.get_bookmarks()
+        self.bookmarks = self.pin_session.get_bookmarks()
         if self.bookmarks:
             self.synced = True
-            error = True
+            error = False
         else:
             self.bookmarks = list()
-            error = False
+            error = True
             
-        return not error    # functions return True in case of no error
+        return not error    # functions return False in case of error
     
     
-    def update_to_pinboard(self, pin:Pinboard):
+    def update_to_pinboard(self):
         """update current database to pinboard. Only the changes"""
         error = False
         for b in self.bookmarks:
-            if b['status']:
-                if b['status'] == 'delete':
-                    resp = pin.delete_bookmark(b['url'])
-                    if resp == 200:
-                        self.bookmarks.remove(b)
-                    else:
-                        error = True
-                    
-                elif b['status'] == 'update':
-                    resp = pin.add_bookmark(b)
-                    if resp == 200:
-                        b['update'] = None
-                    else:
-                        error = True
+            if b['status'] == 'delete':
+                resp = self.pin_session.delete_bookmark(b['url'])
+                if resp == 200:
+                    self.bookmarks.remove(b)
+                else:
+                    error = True                
+            elif b['status'] == 'update':
+                resp = self.pin_session.add_bookmark(b)
+                if resp == 200:
+                    b['update'] = None
+                else:
+                    error = True
         
         if not error:
             self.synced = True
@@ -776,13 +868,14 @@ class BookmarkDatabase:
 
 
 
-# TODO create main function
+
 ###############################################################################
 ###############################################################################
 ###############################################################################
 def main():
-    global root, menu_file, menu_manage, menu_help, status_msg, database
+    global root, menu_file, menu_manage, menu_help, status_msg
     global details_window, bookmark_list_window, filter_window
+    global database
     
     logging.basicConfig(level=logging.DEBUG, 
                         format=' %(asctime)s - %(levelname)s - %(message)s')
@@ -793,7 +886,8 @@ def main():
     root=tk.Tk()
     root.title("bookmark-mgr")
     # root.iconbitmap(root,default='icons/clienticon.ico')
-    root.tk.call('wm', 'iconphoto', root._w, tk.PhotoImage(file='icons/clienticon.png'))
+    root.tk.call('wm', 'iconphoto', root._w, 
+                 tk.PhotoImage(file='icons/clienticon.png'))
     root.columnconfigure(0, weight=1)
     root.columnconfigure(1, weight=1)
     root.rowconfigure(1,weight=1)
@@ -835,14 +929,11 @@ def main():
     
     ######################## Other frames ########################
 
-    filter_window = FilterPane(filterframe)
-    bookmark_list_window = ListOfBookmarksPane(listframe)
     status_msg = StatusBar(statusbar)    
-    pin = Pinboard('pinboard.key')
-    database = BookmarkDatabase()
-    database.update_from_pinboard(pin)
-    bookmark_list_window.rebuild_tree()
+    filter_window = FilterPane(filterframe) 
+    bookmark_list_window = ListOfBookmarksPane(listframe)
     details_window = DetailsPane(propframe)
+    database = BookmarkDatabase()
     
     
     root.mainloop()

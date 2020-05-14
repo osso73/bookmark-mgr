@@ -1,0 +1,101 @@
+<h1 id="user-manual-for-bookmark_mgr">User manual for bookmark_mgr</h1>
+<h2 id="table-of-contents">Table of contents</h2>
+<ol>
+<li><p><a href="#presentation">Presentation</a></p>
+</li>
+<li><p><a href="#screen-description">Screen description</a></p>
+</li>
+<li><p><a href="#menus">Menus</a></p>
+</li>
+<li><p><a href="#toolbar">Toolbar</a></p>
+</li>
+<li><p><a href="#other-functions">Other functions</a></p>
+<p>a. <a href="#attributes-of-bookmarks">Attributes of bookmarks</a></p>
+<p>b. <a href="#search-syntax">Search syntax</a></p>
+</li>
+</ol>
+<h2 id="presentation">Presentation</h2>
+<p>The reason why I started this project is to practice with python and tkinter, making use of a public API such as pinboard. Besides that, I always find, in general in any service, the use of tags for filtering the results is very poor: it is often difficult to filter using several tags, and almost impossible to use the NOT tag (as in: show me elements that have the tag <em>python</em> but don't have <em>tkinter</em>). So my intention here is to develop a search functionality allowing this more powerful search, similar to the syntaxis used by google when searching emails in gmail, for example.</p>
+<p>So the idea is to use this program to download your bookmarks from <a href="https://pinboard.in">pinboard</a>, manage and edit them locally more easily, and then synchronize these changes with the web again. A copy of the bookmarks is kept locally, so you only synchronize the changes since the last connection.</p>
+<h2 id="screen-description">Screen description</h2>
+<p>The main screen is structured as shown in Fig. 1.</p>
+<p><img alt="main screen" src="assets\main_screen.png"></p>
+<p><em><strong>Fig. 1</strong>. Parts of the main screen</em></p>
+<p>We have the <em>toolbar</em> at the top, with icons giving quick access to some of the common actions, and the <em>status bar</em> at the bottom, that is used to display messages.</p>
+<p>The main part of the screen is the <em>list of bookmarks</em>, showing the main attributes for each bookmark: title, url, tags, and time of creation. The <em>filter pane</em> shows a searchbox, to add some filters to reduce the list shown at the left. Examples of such filters are: <em>"tags=python"</em>, or <em>"title=Home"</em>. A more complete syntax is described in chapter "<a href="#search-syntax">Search syntax</a>".</p>
+<p>And finaly the <em>details pane</em> that shows all the details for the selected bookmark, and allows modification of them.</p>
+<h2 id="menus">Menus</h2>
+<p>TODO - menus not implemented yet.</p>
+<h3 id="menu-file">Menu File</h3>
+<p>This menu holds the file-related functions, such as open, save, etc., and also quit the program. The commands included are:</p>
+<ul>
+<li><p><strong>New</strong>: clears current bookmark database from memory, starting an empty one.</p>
+</li>
+<li><p><strong>Open</strong>: open a previously saved file with bookmarks. For now, only JSON format is allowed, but other formats will be implemented in the future (e.g. html, xml).</p>
+</li>
+<li><p><strong>Save</strong>: save current database, in the same filename and format as it was opened.</p>
+</li>
+<li><p><strong>Save as</strong>: allows saving as a different name/folder. For now, only JSON format is allowed.</p>
+</li>
+<li><p><strong>Quit</strong>: quit the application</p>
+</li>
+</ul>
+<h3 id="menu-manage">Menu Manage</h3>
+<p>This menu holds the commands related to managing the bookmarks: synchronisation with/from Pinboard, creation of new bookmark, deletion, etc. The commands included are:</p>
+<ul>
+<li><p><strong>Get from pinboard</strong>: download all bookmarks from pinboard. This will empty the current loca database, and populate with the information from Pinboard.</p>
+</li>
+<li><p><strong>Update changes to pinboard</strong>: upload all changes that have been done locally to Pinboard: deletions, additions, tags changes, bookmark changes, etc.</p>
+</li>
+<li><p><strong>Add new bookmark</strong>: adds a new bookmark to the database. A new bookmark requires as a minimum the URL to be defined.</p>
+</li>
+<li><p><strong>Delete bookmark</strong>: delete current bookmark. The bookmark is marked for delete in the local database, changing its status to delete. At the next syncrhonisation with Pinboard, it will be actually deleted from the local database and from Pinboard.</p>
+</li>
+<li><p><strong>Rename tag</strong>: rename a tag. This updates all local bookmarks that have the tag with the new tagname, and marks the tag to be renamed at  Pinboard website at next syncrhonisation. The bookmarks' status is not changed to update, as they will not be individually updated but rather using the <em>tag rename</em> api function from Pinboard.</p>
+</li>
+<li><p><strong>Delete tag</strong>: deletes a tag. It follows the same approach as renaming: tag is marked to be deleted at next synchronisation, and removed from all local bookmarks.</p>
+</li>
+<li><p><strong>Save Pinboard API Token</strong>: will allow you to save the API token from Pinboard. This is saved in a local file, and will be used to access pinboard.</p>
+</li>
+</ul>
+<h3 id="menu-help">Menu Help</h3>
+<p>This holds the help functions, credits, etc.</p>
+<ul>
+<li><p><strong>Manual</strong>: access to the manual page (this page), explaining how to use the program.</p>
+</li>
+<li><p><strong>About</strong>: shows credits, current version, etc.</p>
+</li>
+</ul>
+<h2 id="toolbar">Toolbar</h2>
+<p>TODO - not implemented yet.</p>
+<h2 id="other-functions">Other functions</h2>
+<p>TODO</p>
+<h3 id="attributes-of-bookmarks">Attributes of bookmarks</h3>
+<p>Most of the attributes of the bookmark come from the definition of pinboard. But there are some attributes added, so we can work with the list offline, and then synchronise with pinboard web. These are the attributes:</p>
+<ul>
+<li><strong>id</strong>: this is a unique identifier, so we can refer to the bookmark</li>
+<li><strong>url</strong>: this is the URL itself</li>
+<li><strong>title</strong>: title of the bookmark, i.e. short text describing the bookmark. By default, this is the page title.</li>
+<li><strong>description</strong>: longer description or comments about the bookmark</li>
+<li><strong>tags</strong>: list of tags or keywords associated with the bookmark</li>
+<li><strong>date</strong>: date and time when bookmark was created. This is in UTC format.</li>
+<li><strong>shared</strong>: is this bookmark public, i.e. visible to anyone in pinboard? This is a True/False attribute.</li>
+<li><strong>toread</strong>: bookmark is flagged to be read later, as per <a href="https://pinboard.in/tour/#later">pinboard definition</a>. Again, it is a True/False attribute.</li>
+<li><strong>status</strong>: this is local attribute, used to know if the bookmark needs to be syncrhonized with pinboard or not. It can have 3 values:<ul>
+<li><em>delete</em>: the bookmark has been deleted locally. It will be deleted in pinboard at next syncrhonisation.</li>
+<li><em>update</em>: bookmark has changed one or more of its attributes. Changes will be updated to pinboard at next synchronisation.</li>
+<li><em>synced</em>: bookmark is in sync with information on pinboard, i.e. has not been modified locally.</li>
+</ul>
+</li>
+</ul>
+<h3 id="search-syntax">Search syntax</h3>
+<p>The syntax to be used in the search box of the filter pane is quite simple: any field name (as shown above, in lowercase), followed by <code style="font-family: Menlo, Consolas, &quot;DejaVu Sans Mono&quot;, monospace;">=</code> (equal) or <code style="font-family: Menlo, Consolas, &quot;DejaVu Sans Mono&quot;, monospace;">!=</code> (different) sign, and the text. If the text has any spaces, put it between "".</p>
+<p>The only exception is the date field, which allows only the operators <code style="font-family: Menlo, Consolas, &quot;DejaVu Sans Mono&quot;, monospace;">&lt;</code> (less than, or earlier than), and <code style="font-family: Menlo, Consolas, &quot;DejaVu Sans Mono&quot;, monospace;">&gt;</code> (greater than, or later than). Date must be provided in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO format</a>: <code style="font-family: Menlo, Consolas, &quot;DejaVu Sans Mono&quot;, monospace;">yyyy-mm-ddTHH:MM:SS</code>, where all the time components are optional, but not the date. Note that all dates are expressed in UTC, but no need to add timezone info.</p>
+<p>You can type several times the same field name, and it will be compared against all instances. The comparison is made by searching if the text provided is part of the field (i.e. any portion of the field). At the moment, the comparison is following <strong>AND</strong> logic, i.e. all conditions have to be met, in order to meet the filter. Search is case-sensitive.</p>
+<p>The boolean fields (i.e. <code style="font-family: Menlo, Consolas, &quot;DejaVu Sans Mono&quot;, monospace;">toread</code> and <code style="font-family: Menlo, Consolas, &quot;DejaVu Sans Mono&quot;, monospace;">shared</code>) can be compared against a yes/no, y/n, or True/False condition. In this case, search is non case-sensitive.</p>
+<p>Examples of search filters:</p>
+<ul>
+<li><code style="font-family: Menlo, Consolas, &quot;DejaVu Sans Mono&quot;, monospace;">tags=python tags!=documentation</code>: show all bookmarks with the tag <em>python</em>, but excluding those with tag <em>documentation</em></li>
+<li><code style="font-family: Menlo, Consolas, &quot;DejaVu Sans Mono&quot;, monospace;">title="Python for" url!=python.org date&gt;2018-01-01 date&lt;2018-12-31</code>: all bookmarks with the words <em>Python for</em> in the title, but not belonging to the <em>python.org</em> domain, and bookmarked during 2018.</li>
+<li><code style="font-family: Menlo, Consolas, &quot;DejaVu Sans Mono&quot;, monospace;">shared=no status=delete</code>: bookmarks that are privat (e.g. not shared), and its status is set to <em>delete</em>, meaning they will be deleted at the next synchronisation with pinboard.</li>
+</ul>

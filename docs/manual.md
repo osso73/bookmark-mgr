@@ -3,18 +3,10 @@
 ## Table of contents
 
 1. [Presentation](#presentation)
-
 2. [Screen description](#screen-description)
-
 3. [Menus](#menus)
-
 4. [Toolbar](#toolbar)
-
 5. [Other functions](#other-functions)
-
-   a. [Attributes of bookmarks](#attributes-of-bookmarks)
-   
-   b. [Search syntax](#search-syntax)
 
 
 ## Presentation
@@ -27,7 +19,7 @@ So the idea is to use this program to download your bookmarks from [pinboard][pi
 ## Screen description
 
 The main screen is structured as shown in Fig. 1.
-![image](assets/bookmark-mgr-main.svg)
+
 ![main screen](assets/main_screen.png)
 
 _**Fig. 1**. Parts of the main screen_
@@ -40,7 +32,50 @@ And finaly the _details pane_ that shows all the details for the selected bookma
 
 ## Menus
 
-TODO - not implemented yet.
+TODO - menus not implemented yet.
+
+### Menu File
+
+This menu holds the file-related functions, such as open, save, etc., and also quit the program. The commands included are:
+
+- **New**: clears current bookmark database from memory, starting an empty one.
+
+- **Open**: open a previously saved file with bookmarks. For now, only JSON format is allowed, but other formats will be implemented in the future (e.g. html, xml).
+
+- **Save**: save current database, in the same filename and format as it was opened.
+
+- **Save as**: allows saving as a different name/folder. For now, only JSON format is allowed.
+
+- **Quit**: quit the application
+
+
+### Menu Manage
+
+This menu holds the commands related to managing the bookmarks: synchronisation with/from Pinboard, creation of new bookmark, deletion, etc. The commands included are:
+
+- **Get from pinboard**: download all bookmarks from pinboard. This will empty the current loca database, and populate with the information from Pinboard.
+
+- **Update changes to pinboard**: upload all changes that have been done locally to Pinboard: deletions, additions, tags changes, bookmark changes, etc.
+
+- **Add new bookmark**: adds a new bookmark to the database. A new bookmark requires as a minimum the URL to be defined.
+
+- **Delete bookmark**: delete current bookmark. The bookmark is marked for delete in the local database, changing its status to delete. At the next syncrhonisation with Pinboard, it will be actually deleted from the local database and from Pinboard.
+
+- **Rename tag**: rename a tag. This updates all local bookmarks that have the tag with the new tagname, and marks the tag to be renamed at  Pinboard website at next syncrhonisation. The bookmarks' status is not changed to update, as they will not be individually updated but rather using the _tag rename_ api function from Pinboard.
+
+- **Delete tag**: deletes a tag. It follows the same approach as renaming: tag is marked to be deleted at next synchronisation, and removed from all local bookmarks.
+
+- **Save Pinboard API Token**: will allow you to save the API token from Pinboard. This is saved in a local file, and will be used to access pinboard.
+
+
+### Menu Help
+
+This holds the help functions, credits, etc.
+
+- **Manual**: access to the manual page (this page), explaining how to use the program.
+
+- **About**: shows credits, current version, etc.
+
 
 ## Toolbar
 
@@ -72,7 +107,7 @@ Most of the attributes of the bookmark come from the definition of pinboard. But
 
 The syntax to be used in the search box of the filter pane is quite simple: any field name (as shown above, in lowercase), followed by `=` (equal) or `!=` (different) sign, and the text. If the text has any spaces, put it between "".
 
-The only exception is the date field, which allows only the operators `<` (less than, or earlier than), and `>` (greater than, or later than). Date must be provided in [ISO format](https://en.wikipedia.org/wiki/ISO_8601): `yyyy-mm-ddTHH:MM:SS`, where all the time components are optional, but not the date. Note that all dates are expressed in UTC.
+The only exception is the date field, which allows only the operators `<` (less than, or earlier than), and `>` (greater than, or later than). Date must be provided in [ISO format](https://en.wikipedia.org/wiki/ISO_8601): `yyyy-mm-ddTHH:MM:SS`, where all the time components are optional, but not the date. Note that all dates are expressed in UTC, but no need to add timezone info.
 
 You can type several times the same field name, and it will be compared against all instances. The comparison is made by searching if the text provided is part of the field (i.e. any portion of the field). At the moment, the comparison is following **AND** logic, i.e. all conditions have to be met, in order to meet the filter. Search is case-sensitive.
 
